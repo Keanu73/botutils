@@ -63,3 +63,27 @@ func (*cron) Every(ctx context.Context, start time.Time, interval time.Duration)
 
 	return stream
 }
+
+// WaitUntil will block until the given time.
+// Can be cancelled by cancelling the context
+func WaitUntil(ctx context.Context, t time.Time) {
+	diff := t.Sub(time.Now())
+	if diff <= 0 {
+		return
+	}
+
+	WaitFor(ctx, diff)
+}
+
+// WaitFor will block for the specified duration or the context is cancelled
+func WaitFor(ctx context.Context, diff time.Duration) {
+	timer := time.NewTimer(diff)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+		return
+	case <-ctx.Done():
+		return
+	}
+}
